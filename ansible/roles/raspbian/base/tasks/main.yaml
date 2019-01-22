@@ -1,0 +1,19 @@
+---
+
+- name: install base tools
+  become: yes
+  apt: name="{{packages}}"
+  vars:
+    packages:
+      - "vim"
+      - "tree"
+      - "lsof"
+      - "socat"
+
+- name: disable swap
+  become: yes
+  command: "{{item}}"
+  with_items:
+    - "dphys-swapfile swapoff"
+    - "dphys-swapfile uninstall"
+    - "systemctl disable dphys-swapfile"

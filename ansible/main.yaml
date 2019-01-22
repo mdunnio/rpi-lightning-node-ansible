@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+  roles:
+    - raspbian/base
+    - raspbian/external-drive
+    - raspbian/bitcoin
+    - raspbian/c-lightning
+    - raspbian/harden-ssh

@@ -1,0 +1,41 @@
+---
+
+- name: add bitcoin group
+  become: yes
+  group:
+    name: "bitcoin"
+    state: "present"
+
+- name: add bitcoin user
+  become: yes
+  user:
+    name: "bitcoin"
+    comment: "bitcoin"
+    group: "bitcoin"
+    append: yes
+
+- name: create bitcoind dir
+  become: yes
+  file:
+    path: "{{bitcoind_dir}}"
+    state: "directory"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: 0770
+
+- name: mount drive
+  become: yes
+  mount:
+    path: "{{bitcoind_mount}}"
+    src: "{{mount_src}}"
+    fstype: "ext4"
+    state: "mounted"
+
+- name: chmod all directories on external drive
+  become: yes
+  file:
+    path: "{{bitcoind_mount}}"
+    state: "directory"
+    recurse: "yes"
+    owner: "bitcoin"
+    group: "bitcoin"

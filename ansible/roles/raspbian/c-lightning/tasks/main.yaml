@@ -1,0 +1,109 @@
+---
+
+- name: install c-lightning dependencies
+  become: yes
+  apt: name="{{packages}}"
+  vars:
+    packages:
+      - "autoconf"
+      - "automake"
+      - "build-essential"
+      - "git"
+      - "libtool"
+      - "libgmp-dev"
+      - "libsqlite3-dev"
+      - "python"
+      - "python3"
+      - "net-tools"
+      - "zlib1g-dev"
+      - "qemu-user"
+
+- name: git clone c-lightning
+  become: yes
+  git:
+    repo: "{{lightningd_git_repo}}"
+    dest: "{{lightningd_build_dir}}"
+    version: "{{lightningd_version}}"
+
+- name: check if lightningd is built
+  become: yes
+  stat:
+    path: "{{lightningd_build_dir}}/lightningd/lightningd"
+  register: lightningd_stat
+
+- name: check if lightning-cli is built
+  become: yes
+  stat:
+    path: "{{lightningd_build_dir}}/cli/lightning-cli"
+  register: lightning_cli_stat
+
+- name: configure c-lightning
+  become: yes
+  command: "./configure"
+  args:
+    chdir: "{{lightningd_build_dir}}"
+  when: "lightningd_stat.stat.exists == false or lightning_cli_stat.stat.exists == false"
+  notify: restart lightningd
+
+- name: make c-lightning
+  become: yes
+  command: "make"
+  args:
+    chdir: "{{lightningd_build_dir}}"
+  when: "lightningd_stat.stat.exists == false or lightning_cli_stat.stat.exists == false"
+  notify: restart lightningd
+
+- name: install lightningd binaries
+  become: yes
+  command: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/bin lightningd/{{item}}"
+  args:
+    chdir: "{{lightningd_build_dir}}"
+  with_items:
+    - "lightningd"
+    - "lightning_channeld"
+    - "lightning_closingd"
+    - "lightning_connectd"
+    - "lightning_gossipd"
+    - "lightning_hsmd"
+    - "lightning_onchaind"
+    - "lightning_openingd"
+
+- name: install lightning-cli
+  become: yes
+  command: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/bin cli/lightning-cli"
+  args:
+    chdir: "{{lightningd_build_dir}}"
+
+- name: make .lightning dir
+  become: yes
+  file:
+    path: "{{lightningd_dir}}"
+    state: "directory"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart lightningd
+
+- name: install lightningd config
+  become: yes
+  template:
+    src: "lightningd.conf.j2"
+    dest: "{{lightningd_conf}}"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart lightningd
+
+- name: install lightningd service
+  become: yes
+  template:
+    src: "lightningd.service.j2"
+    dest: "/lib/systemd/system/lightningd.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: restart lightningd
+
+- name: ensure lightningd is started
+  become: yes
+  systemd: service="lightningd" enabled="yes" state="started" daemon_reload="yes"

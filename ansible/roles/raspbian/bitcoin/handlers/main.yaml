@@ -1,0 +1,5 @@
+---
+
+- name: restart bitcoind
+  become: yes
+  systemd: service="bitcoind" state="restarted" daemon_reload="yes"

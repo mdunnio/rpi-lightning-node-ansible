@@ -1,0 +1,5 @@
+---
+
+- name: restart lightningd
+  become: yes
+  systemd: service="lightningd" state="restarted" daemon_reload="yes"

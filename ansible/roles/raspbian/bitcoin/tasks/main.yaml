@@ -1,0 +1,83 @@
+---
+
+- name: add bitcoin group
+  become: yes
+  group:
+    name: "bitcoin"
+    state: "present"
+
+- name: add bitcoin user
+  become: yes
+  user:
+    name: "bitcoin"
+    shell: "/bin/bash"
+    comment: "bitcoin"
+    group: "bitcoin"
+    append: yes
+
+- name: create bitcoind dir
+  become: yes
+  file:
+    path: "{{bitcoind_dir}}"
+    state: "directory"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: 0770
+
+- name: check to see if bitcoind is already downloaded
+  stat:
+    path: "/tmp/{{bitcoind_tarball}}"
+  register: bitcoind_stat
+
+- name: download bitcoind
+  become: yes
+  get_url:
+    url: "{{bitcoind_url}}"
+    dest: "/tmp"
+  when: "bitcoind_stat.stat.exists == false"
+  notify: restart bitcoind
+
+- name: unarchive bitcoin
+  become: yes
+  unarchive:
+    remote_src: "yes"
+    src: "/tmp/{{bitcoind_tarball}}"
+    dest: "/tmp"
+
+- name: install bitcoind
+  become: yes
+  shell: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/bin /tmp/bitcoin-{{bitcoind_version}}/bin/*"
+
+- name: make .bitcoin dir
+  become: yes
+  file:
+    path: "/home/bitcoin/.bitcoin"
+    state: "directory"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart bitcoind
+
+- name: install bitcoin.conf
+  become: yes
+  template:
+    src: "bitcoin.conf.j2"
+    dest: "{{bitcoind_conf}}"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart bitcoind
+
+- name: install bitcoind service
+  become: yes
+  template:
+    src: "bitcoind.service.j2"
+    dest: "/lib/systemd/system/bitcoind.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: restart bitcoind
+
+- name: ensure bitcoind is started
+  become: yes
+  systemd: service="bitcoind" enabled="yes" state="started" daemon_reload="yes"

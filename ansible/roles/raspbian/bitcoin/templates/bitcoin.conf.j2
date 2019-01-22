@@ -1,0 +1,27 @@
+# /home/bitcoin/.bitcoin/bitcoin.conf
+
+{% if bitcoind_network == "testnet" %}testnet=1{% endif %}
+
+{% if bitcoind_network == "regtest" %}regtest=1{% endif %}
+
+# bitcoind options
+server=1
+daemon=1
+txindex=1
+
+# connection settings
+rpcuser={{bitcoind_rpc_user}}
+rpcpassword={{bitcoind_rpc_password}}
+
+#onlynet=ipv4
+zmqpubrawblock=tcp://127.0.0.1:28332
+zmqpubrawtx=tcp://127.0.0.1:28333
+
+# raspberry pi optimizations
+dbcache=100
+maxorphantx=10
+maxmempool=50
+maxconnections=40
+maxuploadtarget=5000
+
+datadir={{bitcoind_dir}}

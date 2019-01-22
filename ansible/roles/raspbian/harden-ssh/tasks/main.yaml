@@ -1,0 +1,28 @@
+---
+
+- name: create .ssh dir
+  become: yes
+  file:
+    path: "/home/pi/.ssh"
+    state: "directory"
+    mode: "0755"
+
+- name: copy authorized_keys file
+  become: yes
+  copy:
+    src: "keys"
+    dest: "/home/pi/.ssh/authorized_keys"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+- name: remove password authentication
+  become: yes
+  lineinfile:
+    path: "/etc/ssh/sshd_config"
+    regexp: "PasswordAuthentication yes"
+    line: "PasswordAuthentication no"
+
+- name: restart sshd
+  become: yes
+  systemd: service="ssh" state="restarted" daemon_reload="yes"
