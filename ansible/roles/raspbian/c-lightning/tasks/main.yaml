@@ -18,40 +18,46 @@
       - "zlib1g-dev"
       - "qemu-user"
 
+- name: check if lightningd is installed
+  become: yes
+  stat:
+    path: "/usr/local/bin/lightningd"
+  register: lightningd_bin
+
+- name: check version of lightningd
+  become: yes
+  command: "/usr/local/bin/lightningd --version"
+  register: lightningd_version_out
+  when: lightningd_bin.stat.exists == true
+
+- set_fact:
+    install_lightningd_bins: |
+      lightningd_bin.stat.exists == false or
+      lightningd_version_out.stdout != "{{lightningd_version}}"
+
 - name: git clone c-lightning
   become: yes
   git:
     repo: "{{lightningd_git_repo}}"
     dest: "{{lightningd_build_dir}}"
     version: "{{lightningd_version}}"
-
-- name: check if lightningd is built
-  become: yes
-  stat:
-    path: "{{lightningd_build_dir}}/lightningd/lightningd"
-  register: lightningd_stat
-
-- name: check if lightning-cli is built
-  become: yes
-  stat:
-    path: "{{lightningd_build_dir}}/cli/lightning-cli"
-  register: lightning_cli_stat
+  when: install_lightningd_bins
 
 - name: configure c-lightning
   become: yes
-  command: "./configure"
+  command: "./configure --enable-developer"
   args:
     chdir: "{{lightningd_build_dir}}"
-  when: "lightningd_stat.stat.exists == false or lightning_cli_stat.stat.exists == false"
   notify: restart lightningd
+  when: install_lightningd_bins
 
 - name: make c-lightning
   become: yes
   command: "make"
   args:
     chdir: "{{lightningd_build_dir}}"
-  when: "lightningd_stat.stat.exists == false or lightning_cli_stat.stat.exists == false"
   notify: restart lightningd
+  when: install_lightningd_bins
 
 - name: install lightningd binaries
   become: yes
@@ -67,12 +73,14 @@
     - "lightning_hsmd"
     - "lightning_onchaind"
     - "lightning_openingd"
+  when: install_lightningd_bins
 
 - name: install lightning-cli
   become: yes
   command: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/bin cli/lightning-cli"
   args:
     chdir: "{{lightningd_build_dir}}"
+  when: install_lightningd_bins
 
 - name: make .lightning dir
   become: yes
