@@ -1,0 +1,60 @@
+---
+
+- name: go get lnd
+  shell: "go get -d github.com/lightningnetwork/lnd"
+  args:
+    executable: "/bin/sh"
+  environment:
+    PATH: "usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games:/usr/local/go/bin" # hack
+    GOPATH: "/home/pi/gocode"
+
+- name: make install lnd
+  become: yes
+  make:
+    chdir: "/home/pi/go/src/github.com/lightningnetwork/lnd"
+    target: "install"
+  environment:
+    PATH: "usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games:/usr/local/go/bin" # hack
+    GOPATH: "/home/pi/gocode"
+
+- name: install lnd/lncli binaries
+  become: yes
+  shell: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/go/bin $GOPATH/bin/{{item}}"
+  loop: ["lnd", "lncli"]
+  environment:
+    PATH: "usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games:/usr/local/go/bin" # hack
+    GOPATH: "/home/pi/gocode"
+
+- name: make .lnd dir
+  become: yes
+  file:
+    path: "{{lnd_dir}}"
+    state: "directory"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart lnd
+
+- name: install lnd config
+  become: yes
+  template:
+    src: "lnd.conf.j2"
+    dest: "{{lnd_dir}}"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  notify: restart lnd
+
+- name: install lnd service
+  become: yes
+  template:
+    src: "lnd.service.j2"
+    dest: "/lib/systemd/system/lnd.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  notify: restart lnd
+
+- name: ensure lnd is started
+  become: yes
+  systemd: service="lnd" enabled="yes" state="started" daemon_reload="yes"

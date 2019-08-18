@@ -1,0 +1,39 @@
+---
+
+- name: download go
+  get_url:
+    url: "https://dl.google.com/go/go{{go_version}}.linux-armv6l.tar.gz"
+    dest: "/tmp/go{{go_version}}.linux-armv6l.tar.gz"
+    checksum: "sha256:{{go_checksum}}"
+  tags: [install-go]
+
+- name: install go
+  become: yes
+  command: "tar -C /usr/local -xzf /tmp/go{{go_version}}.linux-armv6l.tar.gz"
+  tags: [install-go]
+
+- name: create local go dir
+  file:
+    path: "/home/pi/gocode"
+    state: "directory"
+    mode: 0755
+  tags: [install-go]
+
+- name: add GOPATH to .bashrc
+  lineinfile:
+    path: "/home/pi/.bashrc"
+    regexp: "^GOPATH=/home/pi/gocode"
+    line: "GOPATH=/home/pi/gocode"
+    insertbefore: "^PATH="
+    state: "present"
+  tags: [install-go]
+
+- name: add GOPATH/bin to path
+  become: yes
+  lineinfile:
+    path: "/home/{{item}}/.bashrc"
+    regexp: "^PATH="
+    line: "PATH=$PATH:/usr/local/go/bin"
+    state: "present"
+  # tags: [install-go]
+  loop: ["pi", "bitcoin"]

@@ -1,0 +1,5 @@
+---
+
+- name: restart lnd
+  become: yes
+  systemd: service="lnd" state="restarted" daemon_reload="yes"
