@@ -4,7 +4,7 @@ Requires=bitcoind.service
 After=bitcoind.service
 
 [Service]
-ExecStart=/usr/local/bin/lightningd --daemon --conf {{lightningd_conf}} --plugin-dir={{lightningd_plugin_dir}} --pid-file=/run/lightningd/lightningd.pid
+ExecStart=/usr/local/bin/lightningd --daemon --network {{lightningd_network}} --lightning-dir={{lightningd_dir}} --conf {{lightningd_conf}} --plugin-dir={{lightningd_plugin_dir}} --pid-file=/run/lightningd/lightningd.pid
 
 # Creates /run/lightningd owned by bitcoin
 RuntimeDirectory=lightningd
