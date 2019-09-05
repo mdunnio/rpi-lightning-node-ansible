@@ -96,8 +96,8 @@
 - name: install lightningd config
   become: yes
   template:
-    src: "lightningd.conf.j2"
-    dest: "{{lightningd_conf}}"
+    src: "config.j2"
+    dest: "{{lightningd_dir}}/config"
     owner: "bitcoin"
     group: "bitcoin"
     mode: "770"
