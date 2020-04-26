@@ -7,8 +7,8 @@
 # bitcoind options
 server=1
 daemon=1
-#txindex=1
-prune=550
+{% if bitcoind_prune %}prune=550{% else %}txindex=1{% endif %}
+
 
 # connection settings
 rpcuser={{bitcoind_rpc_user}}

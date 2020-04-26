@@ -5,3 +5,4 @@ bitcoind_tarball: "bitcoin-{{bitcoind_version}}-arm-linux-gnueabihf.tar.gz"
 bitcoind_url:     "https://bitcoin.org/bin/bitcoin-core-{{bitcoind_version}}/{{bitcoind_tarball}}"
 bitcoind_dir:     "/var/lib/bitcoind"
 bitcoind_conf:    "/etc/bitcoind/bitcoin.conf"
+bitcoind_prune:   false
