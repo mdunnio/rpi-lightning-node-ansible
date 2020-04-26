@@ -1,28 +1,26 @@
 ---
 
-- name: add bitcoin group
+- name: add bitcoind user
   become: yes
-  group:
-    name: "bitcoin"
-    state: "present"
+  user: name="{{bitcoind_user}}" shell="/bin/false"
 
-- name: add bitcoin user
-  become: yes
-  user:
-    name: "bitcoin"
-    shell: "/bin/bash"
-    comment: "bitcoin"
-    group: "bitcoin"
-    append: yes
-
-- name: create bitcoind dir
+- name: create bitcoind data dir
   become: yes
   file:
     path: "{{bitcoind_dir}}"
     state: "directory"
-    owner: "bitcoin"
-    group: "bitcoin"
-    mode: 0770
+    owner: "{{bitcoind_user}}"
+    group: "{{bitcoind_user}}"
+    mode: "0770"
+
+- name: create bitcoind config dir
+  become: yes
+  file:
+    path: "/etc/bitcoind/"
+    state: "directory"
+    owner: "{{bitcoind_user}}"
+    group: "{{bitcoind_user}}"
+    mode: "0770"
 
 - name: check to see if bitcoind is already downloaded
   stat:
@@ -37,7 +35,7 @@
   when: "bitcoind_stat.stat.exists == false"
   notify: restart bitcoind
 
-- name: unarchive bitcoin
+- name: unarchive bitcoind
   become: yes
   unarchive:
     remote_src: "yes"
@@ -46,16 +44,16 @@
 
 - name: install bitcoind
   become: yes
-  shell: "install -m 0755 -o bitcoin -g bitcoin -t /usr/local/bin /tmp/bitcoin-{{bitcoind_version}}/bin/*"
+  shell: "install -m 0755 -o {{bitcoind_user}} -g {{bitcoind_user}} -t /usr/local/bin /tmp/bitcoin-{{bitcoind_version}}/bin/*"
 
 - name: make .bitcoin dir
   become: yes
   file:
-    path: "/home/bitcoin/.bitcoin"
+    path: "{{bitcoind_dir}}/.bitcoin"
     state: "directory"
-    owner: "bitcoin"
-    group: "bitcoin"
-    mode: "770"
+    owner: "{{bitcoind_user}}"
+    group: "{{bitcoind_user}}"
+    mode: "0770"
   notify: restart bitcoind
 
 - name: install bitcoin.conf
@@ -63,9 +61,9 @@
   template:
     src: "bitcoin.conf.j2"
     dest: "{{bitcoind_conf}}"
-    owner: "bitcoin"
-    group: "bitcoin"
-    mode: "770"
+    owner: "{{bitcoind_user}}"
+    group: "{{bitcoind_user}}"
+    mode: "0770"
   notify: restart bitcoind
 
 - name: install bitcoind service
