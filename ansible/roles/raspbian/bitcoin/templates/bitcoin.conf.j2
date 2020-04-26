@@ -1,5 +1,3 @@
-# /home/bitcoin/.bitcoin/bitcoin.conf
-
 {% if bitcoind_network == "testnet" %}testnet=1{% endif %}
 
 {% if bitcoind_network == "regtest" %}regtest=1{% endif %}
@@ -7,8 +5,9 @@
 # bitcoind options
 server=1
 daemon=1
-{% if bitcoind_prune %}prune=550{% else %}txindex=1{% endif %}
-
+{% if bitcoind_prune %}prune=550
+{% else %}txindex=1
+{% endif %}
 
 # connection settings
 rpcuser={{bitcoind_rpc_user}}
@@ -25,4 +24,4 @@ maxmempool=50
 maxconnections=40
 maxuploadtarget=5000
 
-datadir={{bitcoind_dir}}
+pid={{bitcoind_pid}}

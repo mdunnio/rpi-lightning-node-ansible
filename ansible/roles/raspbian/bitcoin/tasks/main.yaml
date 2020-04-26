@@ -7,16 +7,7 @@
 - name: create bitcoind data dir
   become: yes
   file:
-    path: "{{bitcoind_dir}}"
-    state: "directory"
-    owner: "{{bitcoind_user}}"
-    group: "{{bitcoind_user}}"
-    mode: "0770"
-
-- name: create bitcoind config dir
-  become: yes
-  file:
-    path: "/etc/bitcoind/"
+    path: "{{bitcoind_data_dir}}"
     state: "directory"
     owner: "{{bitcoind_user}}"
     group: "{{bitcoind_user}}"
@@ -49,7 +40,7 @@
 - name: make .bitcoin dir
   become: yes
   file:
-    path: "{{bitcoind_dir}}/.bitcoin"
+    path: "{{bitcoind_data_dir}}/.bitcoin"
     state: "directory"
     owner: "{{bitcoind_user}}"
     group: "{{bitcoind_user}}"
@@ -60,7 +51,7 @@
   become: yes
   template:
     src: "bitcoin.conf.j2"
-    dest: "{{bitcoind_conf}}"
+    dest: "{{bitcoind_data_dir}}/bitcoin.conf"
     owner: "{{bitcoind_user}}"
     group: "{{bitcoind_user}}"
     mode: "0770"

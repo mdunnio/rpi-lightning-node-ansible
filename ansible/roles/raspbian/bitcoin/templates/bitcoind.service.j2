@@ -3,13 +3,13 @@ Description=Bitcoin daemon
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/bitcoind -daemon -conf={{bitcoind_conf}} -pid=/run/{{bitcoind_user}}/{{bitcoind_user}}.pid
+ExecStart=/usr/local/bin/bitcoind -daemon -datadir={{bitcoind_data_dir}}
 
 # Creates /run/bitcoind owned by bitcoin
 RuntimeDirectory={{bitcoind_user}}
 User={{bitcoind_user}}
 Type=forking
-PIDFile=/run/{{bitcoind_user}}/{{bitcoind_user}}.pid
+PIDFile={{bitcoind_pid}}
 Restart=on-failure
 
 # Hardening measures
