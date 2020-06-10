@@ -46,7 +46,7 @@
 
 - name: configure c-lightning
   become: yes
-  command: "./configure --enable-developer"
+  command: "./configure"
   args:
     chdir: "{{lightningd_build_dir}}"
   notify: restart lightningd
@@ -54,7 +54,7 @@
 
 - name: make c-lightning
   become: yes
-  command: "make"
+  command: "make install"
   args:
     chdir: "{{lightningd_build_dir}}"
   notify: restart lightningd
@@ -101,6 +101,23 @@
     owner: "bitcoin"
     group: "bitcoin"
     mode: "770"
+  notify: restart lightningd
+
+- name: install plugins
+  become: yes
+  copy:
+    remote_src: yes
+    src: "{{lightningd_build_dir}}/plugins/{{item}}"
+    dest: "{{lightningd_dir}}/plugins/{{item}}"
+    owner: "bitcoin"
+    group: "bitcoin"
+    mode: "770"
+  with_items:
+    - "autoclean"
+    - "bcli"
+    - "fundchannel"
+    - "keysend"
+    - "pay"
   notify: restart lightningd
 
 - name: install lightningd service
